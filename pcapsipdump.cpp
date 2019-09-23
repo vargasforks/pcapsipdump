@@ -550,7 +550,7 @@ int main(int argc, char *argv[])
                         }
                     }
                 }else if (get_method(data, sip_method, sizeof(sip_method)) ||
-                          memcmp(data, "SIP/2.0 ", sizeof("SIP/2.0 "))) {
+                          !memcmp(data, "SIP/2.0 ", strlen("SIP/2.0 "))) {
                     char caller[256] = "";
                     char called[256] = "";
                     char callid[512] = "";
