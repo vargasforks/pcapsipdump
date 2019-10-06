@@ -1,3 +1,5 @@
+#include <sys/stat.h>
+
 #ifndef BSD
   #ifdef USE_BSD_STRING_H
     #include <bsd/string.h>
