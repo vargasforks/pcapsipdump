@@ -28,18 +28,7 @@
 
 #define PCAPSIPDUMP_VERSION "0.2-trunk"
 
-#if !defined (__LITTLE_ENDIAN) && !defined (__BIG_ENDIAN)
-  #include <sys/param.h>
-  #if __LITTLE_ENDIAN__ || __BYTE_ORDER == __LITTLE_ENDIAN
-    #define __LITTLE_ENDIAN 1
-  #elif __BIG_ENDIAN__ || __BYTE_ORDER == __BIG_ENDIAN
-    #define __BIG_ENDIAN 1
-  #elif sparc
-    #define __BIG_ENDIAN 1
-  #else
-    #error Endianness not defined
-  #endif
-#endif
+#include "pcapsipdump_endian.h"
 
 #if !defined(PCAP_NETMASK_UNKNOWN)
 /*
@@ -51,14 +40,12 @@
 
 /*** IPv4 */
 struct iphdr {
-#if defined(__LITTLE_ENDIAN)
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 	uint8_t	ihl:4,
 		version:4;
-#elif defined (__BIG_ENDIAN)
+#else
 	uint8_t	version:4,
   		ihl:4;
-#else
-#error Endian not defined
 #endif
 	uint8_t	tos;
 	uint16_t	tot_len;
@@ -74,14 +61,12 @@ struct iphdr {
 
 /* IPv6 */
 struct ipv6hdr {
-#if defined(__LITTLE_ENDIAN)
+#if __BYTE_ORDER == __LITTLE_ENDIAN
         uint8_t                 priority:4,
                                 version:4;
-#elif defined(__BIG_ENDIAN)
+#else
         uint8_t                 version:4,
                                 priority:4;
-#else
-#error "__{BIG,LITTLE}_ENDIAN is not defined"
 #endif
         uint8_t                 flow_lbl[3];
         uint16_t                payload_len;
@@ -103,7 +88,7 @@ struct tcphdr {
         uint16_t  dest;
         uint32_t  seq;
         uint32_t  ack_seq;
-#if defined(__LITTLE_ENDIAN)
+#if __BYTE_ORDER == __LITTLE_ENDIAN
         uint16_t   res1:4,
                    doff:4,
                    fin:1,
@@ -114,7 +99,7 @@ struct tcphdr {
                    urg:1,
                    ece:1,
                    cwr:1;
-#elif defined(__BIG_ENDIAN)
+#else
         uint16_t   doff:4,
                    res1:4,
                    cwr:1,
@@ -125,8 +110,6 @@ struct tcphdr {
                    rst:1,
                    syn:1,
                    fin:1;
-#else
-#error "__{BIG,LITTLE}_ENDIAN is not defined"
 #endif
         uint16_t  window;
         uint16_t  check;
