@@ -142,6 +142,7 @@ struct iphdr* ethernet_get_header_ip(const void *pkt_data){
     // as indexed from pkt_ethertype[]:
     //   [0]    [1]   [2]  [3]   [4]  [5]
     // 0x0800  IP                         <- untagged
+    // 0x86dd  IP6                        <- untagged IPv6
     // 0x8100  tag   0x0800 IP            <- 802.1Q
     // 0x8100  tag   0x8864 ..  ..     .. <- 802.1Q, then PPPoE
     // 0x8100  tag   0x8100 tag 0x0800 IP <- non-standard Q-in-Q
@@ -151,6 +152,8 @@ struct iphdr* ethernet_get_header_ip(const void *pkt_data){
     // 0x8864 0x1100 sessid len 0x0057 IP <- RFC2516 PPPoE Session Stage IPv6
     switch(pkt_ethertype[0]){
         case HTONS(0x0800):
+            return (struct iphdr*)(pkt_ethertype + 1);
+        case HTONS(0x86dd):
             return (struct iphdr*)(pkt_ethertype + 1);
         case HTONS(0x8100):
             if (pkt_ethertype[2] == htons(0x0800)){
