@@ -469,6 +469,24 @@ int main(int argc, char *argv[])
                         ct->delete_ipfrag(aai);
                     }
                 }
+            } else if (header_ip->version == 6 && header_ipv6->nexthdr == IPPROTO_FRAGMENT &&
+                    ((char*)header_ipv6)[40] == IPPROTO_UDP &&
+                    (htons(((uint16_t*)header_ipv6)[21]) & 0xffff8) > 0 // fragment offset
+                    ){
+                struct ipv6fraghdr *frag = (ipv6fraghdr*)(((char*)header_ipv6)+sizeof(*header_ipv6));
+                if (frag->nexthdr == IPPROTO_UDP){
+                    struct addr_addr_id aai = (struct addr_addr_id){hsaddr(header_ipv6),
+                                                                   hdaddr(header_ipv6),
+                                                                   (uint16_t)frag->id};
+                    pcap_dumper_t *f = ct->get_ipfrag(aai);
+                    if (f) {
+                        pcap_dump((u_char *)f,pkt_header,pkt_data);
+                        if (opt_packetbuffered) {pcap_dump_flush(f);}
+                        if ((htons(frag->offset_and_more) & 1) == 0){
+                            ct->delete_ipfrag(aai);
+                        }
+                    }
+                }
             } else if ( /* sane IPv4 UDP */
                  (header_ip->version == 4 && pkt_header->caplen >=
                    (offset_to_ip+sizeof(struct iphdr)+sizeof(struct udphdr)) &&
@@ -477,6 +495,11 @@ int main(int argc, char *argv[])
                  (header_ipv6->version == 6 && pkt_header->caplen >=
                    (offset_to_ip+sizeof(struct ipv6hdr)+sizeof(struct udphdr)) &&
                    header_ipv6->nexthdr == IPPROTO_UDP)
+                 /* fragmented IPv6 UDP */ ||
+                 (header_ipv6->version == 6 && pkt_header->caplen >=
+                   (offset_to_ip+sizeof(struct ipv6hdr)+sizeof(struct udphdr)) &&
+                   header_ipv6->nexthdr == IPPROTO_FRAGMENT &&
+                   ((char*)header_ipv6)[40] == IPPROTO_UDP)
 #ifdef USE_TCP
                  /* sane IPv4 TCP */ ||
                  (header_ip->version == 4 && pkt_header->caplen >=
@@ -496,12 +519,16 @@ int main(int argc, char *argv[])
                 struct udphdr *header_udp;
                 struct tcphdr *tcph;
 
+                int extra_len = (header_ipv6->version == 6 && header_ipv6->nexthdr == IPPROTO_FRAGMENT) ? 8 : 0;
                 tcph=(tcphdr *)((char*)header_ip+
-                    ((header_ip->version == 4) ? sizeof(iphdr) : sizeof(ipv6hdr)));
+                    ((header_ip->version == 4) ? sizeof(iphdr) : sizeof(ipv6hdr))+extra_len);
                 header_udp=(udphdr *)((char*)header_ip+
-                    ((header_ip->version == 4) ? sizeof(iphdr) : sizeof(ipv6hdr)));
+                    ((header_ip->version == 4) ? sizeof(iphdr) : sizeof(ipv6hdr))+extra_len);
                 if ((header_ip->version == 4 && header_ip->protocol == IPPROTO_UDP) ||
-                    (header_ip->version == 6 && header_ipv6->nexthdr == IPPROTO_UDP)) {
+                    (header_ip->version == 6 && header_ipv6->nexthdr == IPPROTO_UDP) ||
+                    (header_ip->version == 6 && header_ipv6->nexthdr == IPPROTO_FRAGMENT &&
+                     ((char*)header_ipv6)[40] == IPPROTO_UDP)
+                    ) {
                     data=(char *)header_udp+sizeof(*header_udp);
                 }else{
                     data=(char *)((unsigned char *)tcph + (tcph->doff * 4));
@@ -627,6 +654,12 @@ int main(int argc, char *argv[])
                             ct->add_ipfrag((struct addr_addr_id){header_ip->saddr,
                                                                  header_ip->daddr,
                                                                  header_ip->id}, ct->table[idx].f_pcap);
+		        }
+                        if (header_ip->version == 6 && header_ipv6->nexthdr == IPPROTO_FRAGMENT){
+                            struct ipv6fraghdr *frag = (ipv6fraghdr*)(((char*)header_ipv6)+sizeof(*header_ipv6));
+                            ct->add_ipfrag((struct addr_addr_id){hsaddr(header_ipv6),
+                                                                 hdaddr(header_ipv6),
+                                                                 (uint16_t)frag->id}, ct->table[idx].f_pcap);
 		        }
                     }
 		}else{

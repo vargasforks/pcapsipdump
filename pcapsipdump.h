@@ -76,6 +76,13 @@ struct ipv6hdr {
         uint32_t                daddr[4];
 };
 
+struct ipv6fraghdr {
+        uint8_t                 nexthdr;
+        uint8_t                 reserved;
+        uint16_t                offset_and_more;
+        uint32_t                id;
+};
+
 struct udphdr {
 	uint16_t	source;
 	uint16_t	dest;
