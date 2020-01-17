@@ -447,17 +447,14 @@ int main(int argc, char *argv[])
 		ct->do_cleanup(pkt_header->ts.tv_sec);
 		last_cleanup=pkt_header->ts.tv_sec;
 	    }
-            header_ip = (iphdr *)((char*)pkt_data + offset_to_ip);
-            // 802.1Q VLAN
-            if ((offset_to_ip == 14) &&
-                ntohs(*((uint16_t*)((char*)pkt_data + offset_to_ip - 2))) == 0x8100 &&
-                ntohs(*((uint16_t*)((char*)pkt_data + offset_to_ip + 2))) == 0x0800) {
-                header_ip = (iphdr *)((char*)pkt_data + offset_to_ip + 4);
-            } else if ((offset_to_ip == 14) &&
-                ntohs(*((uint16_t*)((char*)pkt_data + offset_to_ip - 2))) == 0x8100 &&
-                ntohs(*((uint16_t*)((char*)pkt_data + offset_to_ip + 2))) == 0x8100 &&
-                ntohs(*((uint16_t*)((char*)pkt_data + offset_to_ip + 6))) == 0x0800) {
-                header_ip = (iphdr *)((char*)pkt_data + offset_to_ip + 8);
+
+            if (offset_to_ip == sizeof(struct ether_header)) {
+                header_ip = ethernet_get_header_ip(pkt_data);
+            }else{
+                header_ip = (iphdr *)((char*)pkt_data + offset_to_ip);
+            }
+            if(!header_ip){
+                continue;
             }
             header_ipv6=(ipv6hdr *)header_ip;
             if (header_ip->version == 4 && (header_ip->frag_off & htons(0x1fff)) > 0) { // fragment offset > 0
@@ -633,7 +630,7 @@ int main(int argc, char *argv[])
 		        }
                     }
 		}else{
-		    if (verbosity>=3){
+		    if (verbosity>=4){
 			char st1[INET6_ADDRSTRLEN];
 			char st2[INET6_ADDRSTRLEN];
 

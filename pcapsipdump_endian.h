@@ -36,3 +36,13 @@
     #error Unable to detect target system endianness
   #endif
 #endif
+
+#define CONST_BSWAP16(x)     ((uint16_t)(                        \
+                             (((uint16_t)(x) >> 8) & 0x00FF)   | \
+                             (((uint16_t)(x) << 8) & 0xFF00)))
+
+#if (__BYTE_ORDER == __LITTLE_ENDIAN)
+  #define HTONS(x) CONST_BSWAP16(x)
+#else
+  #define HTONS(x) (x)
+#endif

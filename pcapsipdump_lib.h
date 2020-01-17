@@ -18,3 +18,5 @@ size_t expand_dir_template(char *s, size_t max, const char *format,
                            const char *to,
                            const char *callid,
                            const time_t t);
+
+struct iphdr* ethernet_get_header_ip(const void *pkt_data);
