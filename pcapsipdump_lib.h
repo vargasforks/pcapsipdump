@@ -20,3 +20,5 @@ size_t expand_dir_template(char *s, size_t max, const char *format,
                            const time_t t);
 
 struct iphdr* ethernet_get_header_ip(const void *pkt_data);
+
+struct iphdr* skip_tunnel_ip_header(struct iphdr* ip);

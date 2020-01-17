@@ -456,6 +456,8 @@ int main(int argc, char *argv[])
             if(!header_ip){
                 continue;
             }
+            header_ip=skip_tunnel_ip_header(header_ip);
+
             header_ipv6=(ipv6hdr *)header_ip;
             if (header_ip->version == 4 && (header_ip->frag_off & htons(0x1fff)) > 0) { // fragment offset > 0
                 struct addr_addr_id aai = (struct addr_addr_id){header_ip->saddr,

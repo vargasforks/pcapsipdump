@@ -9,6 +9,7 @@
 
 #include "pcapsipdump_lib.h"
 #include "pcapsipdump_endian.h"
+#include "pcapsipdump.h"
 
 extern int verbosity;
 
@@ -185,4 +186,13 @@ fail:
             htons(pkt_ethertype[5]));
     }
     return NULL;
+}
+
+struct iphdr* skip_tunnel_ip_header(struct iphdr* ip){
+    struct ipv6hdr *ipv6 = (ipv6hdr*)ip;
+
+    if(ipv6->version == 6 && ipv6->nexthdr == 4){
+        return (iphdr*)(((char*)ip)+sizeof(*ipv6));
+    }
+    return (struct iphdr*)ip;
 }
