@@ -144,6 +144,7 @@ struct iphdr* ethernet_get_header_ip(const void *pkt_data){
     // 0x0800  IP                         <- untagged
     // 0x86dd  IP6                        <- untagged IPv6
     // 0x8100  tag   0x0800 IP            <- 802.1Q
+    // 0x8100  tag   0x88dd IP6           <- 802.1Q, then IPv6
     // 0x8100  tag   0x8864 ..  ..     .. <- 802.1Q, then PPPoE
     // 0x8100  tag   0x8100 tag 0x0800 IP <- non-standard Q-in-Q
     // 0x9100  tag   0x8100 tag 0x0800 IP <- old standard Q-in-Q
@@ -156,7 +157,8 @@ struct iphdr* ethernet_get_header_ip(const void *pkt_data){
         case HTONS(0x86dd):
             return (struct iphdr*)(pkt_ethertype + 1);
         case HTONS(0x8100):
-            if (pkt_ethertype[2] == htons(0x0800)){
+            if (pkt_ethertype[2] == htons(0x0800) ||
+                pkt_ethertype[2] == htons(0x86dd)){
                 return (struct iphdr*)(pkt_ethertype + 3);
             } else if (pkt_ethertype[2] == htons(0x8864)){
                 // recurse
