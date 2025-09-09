@@ -399,6 +399,9 @@ int main(int argc, char *argv[])
 	    case DLT_LINUX_SLL :
 		offset_to_ip=16;
 		break;
+	    case DLT_LINUX_SLL2:
+		offset_to_ip=20;
+		break;
 	    case DLT_RAW :
 		offset_to_ip=0;
 		break;
