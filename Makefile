@@ -27,6 +27,13 @@ pcapsipdump: make-checks *.cpp *.h
 	$(LIBS) $(BSDSTR_LIBS) \
 	-o pcapsipdump
 
+pcapsipdump-static: make-checks *.cpp *.h
+	$(CXX) $(RELEASEFLAGS) $(CXXFLAGS) $(LDFLAGS) $(DEFS) $(BSDSTR_DEFS) \
+	*.cpp \
+	-static \
+	$(LIBS) $(BSDSTR_LIBS) \
+	-o pcapsipdump-static
+
 pcapsipdump-debug: make-checks *.cpp *.h
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(DEFS) $(BSDSTR_DEFS) -ggdb \
 	*.cpp \

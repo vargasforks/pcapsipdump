@@ -1,0 +1,5 @@
+To compile a statically linked binary using an alpine docker image:
+
+docker run --rm -it -v $PWD:/root/src alpine sh -c "apk update; apk add g++ make libpcap-dev; cd /root/src; CXXFLAGS=-DUSE_TCP=1 make pcapsipdump-static"
+
+It should compile to a statically linked binary with the name `pcapsipdump-static`
